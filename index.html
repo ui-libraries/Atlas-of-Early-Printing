@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <!-- Give the page a title -->
+  <title>Atlas of Early Printing</title>
+  <!-- Add a link to the Leaflet CSS library so you can reference it for styling your map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" />
+  <!-- Add a link to JQuery UI -->
+  <link rel="stylesheet" href="libraries/jquery-ui.min.css" />
+  <!-- Add a link to css for layer control -->
+  <link rel="stylesheet" href="libraries/L.Control.Layers.Tree.css" />
+  <!-- Font css -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Aboreto&family=Baskervville&display=swap" rel="stylesheet">
+  <!-- All the CSS code goes inside the style tags below -->
+  <style>
+    /* style the body */
+    body {
+      margin: 0px;
+      height: 100%;
+      width: 100%;
+    }
+
+    /* style the map */
+    #map {
+      position: absolute;
+      width: 100%;
+      top: 0px;
+      bottom: 0;
+    }
+
+    /* style the slider-control div */
+    #slider-control {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      z-index: 700;
+      background-color: rgba(255, 255, 255, 0.6);
+      padding: 0px 15px 15px 15px;
+      border-radius: 3px;
+      box-shadow: 0px 0px 0px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    #slider-range {
+      /*position: fixed;
+      bottom: 10px;
+      left: 10px;*/
+      width: 100%;
+      z-index: 700;
+    }
+
+    #date {
+      font-family: 'Aboreto', cursive;
+      font-size: 13px;
+    }
+
+    #amount {
+      font-family: 'Aboreto', cursive;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .leaflet-control-layers-expanded .leaflet-control-layers-list {
+      font-family: 'Baskervville', serif;
+      /*font-size: 13px;*/
+    }
+
+    .custom .leaflet-popup-content {
+      padding: 0px, 0px, 0px, 0px;
+      margin: 0px, 0px, 0px, 0px;
+    }
+
+    .custom .leaflet-popup-content-wrapper {
+      padding: 0px, 0px, 0px, 0px;
+      border-radius: 3px;
+    }
+
+    .custom h4 {
+      background: #454545;
+      color: #ffffff;
+      padding: 3px 3px 3px 3px;
+      font-weight: normal;
+      font-size: 13px;
+      margin: 0px;
+    }
+
+    .custom h5 {
+      background: #FAF9F6;
+      padding: 3px 3px 3px 3px;
+      font-weight: normal;
+      font-size: 13px;
+      margin: 0px;
+    }
+
+    /*
+    button {
+      background:none;
+      border:none;
+      padding: 0;
+    }
+*/
+
+    button {
+      display: inline;
+      padding: 0;
+      border: 0;
+      font: inherit;
+      text-decoration: underline;
+      cursor: pointer;
+      background: transparent;
+      color: #0078A8;
+
+      -webkit-appearance: none;
+    }
+
+    .lcontrol {
+      max-width: 125px;
+      font-size: 10px;
+    }
+
+    /*
+    button {
+      align-items: normal;
+      background-color: rgba(0,0,0,0);
+      border-color: #0078A8;
+      border-style: none;
+      box-sizing: content-box;
+      color: #0078A8;
+      cursor: pointer;
+      display: inline;
+      font: inherit;
+      height: auto;
+      padding: 0;
+      perspective-origin: 0 0;
+      text-align: start;
+      text-decoration: underline;
+      transform-origin: 0 0;
+      width: auto;
+      -moz-appearance: none;
+      -webkit-logical-height: 1em; /* Chrome ignores auto, so we have to use this hack to set the correct height  */
+    /*      -webkit-logical-width: auto; /* Chrome ignores auto, but here for completeness */
+    /*    }
+
+    /* Mozilla uses a pseudo-element to show focus on buttons, */
+    /* but anchors are highlighted via the focus pseudo-class. */
+
+    /*    @supports (-moz-appearance:none) { /* Mozilla-only */
+    /*      button::-moz-focus-inner { /* reset any predefined properties */
+    /*        border: none;
+        padding: 0;
+      }
+      button:focus { /* add outline to focus pseudo-class */
+    /*        outline-style: dotted;
+        outline-width: 1px;
+      }
+    }
+*/
+    /*
+    .leaflet-popup {
+      min-width: 300px;
+    }
+*/
+    .popupImage {
+      max-width: 100%;
+      max-height: 50%;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- the map -->
+  <div id="map"></div>
+
+  <div id="slider-control">
+    <p>
+      <label for="amount" id="date">Date range:</label>
+      <input type="text" id="amount" readonly style="border:0; color:#00000;">
+    </p>
+
+    <div id="slider-range"></div>
+  </div>
+
+  <!-- Add a link to the Leaflet JavaScript library so you can reference it for building your map -->
+  <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"></script>
+  <!-- Add a link to the jQuery JavaScript library so you can leverage ajax methods to load your data -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <!-- Add a link to JQuery UI -->
+  <script src="libraries/jquery-ui.min.js"></script>
+  <!-- Add a link to js for layer control -->
+  <script src="libraries/L.Control.Layers.Tree.js"></script>
+  <!-- Add a link to the color definitions for the ecclesiastical areas -->
+  <script src="libraries/ecclesiasticalColors.js"></script>
+  <!-- All JavaScript goes inside the script tags below -->
+  <script>
+    // define map options
+    const mapOptions = {
+      center: [48, 5], // center the map on the coordinates for Europe
+      zoom: 5, // set the initial zoom
+      //renderer: L.canvas(),
+    };
+
+    // define the map with the options above
+    const map = L.map("map", mapOptions);
+
+    // add a base map to the map
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    }).addTo(map);
+
+    // define array of values in an array
+    const range = (start, stop, step) => Array.from({
+      length: (stop - start) / step + 1
+    }, (_, i) => start + (i * step));
+
+    // Define an empty layer group for the filtered data
+    const conflictsFiltered = L.layerGroup();
+    const spreadOfPrintingFiltered = L.layerGroup();
+    const universitiesFiltered = L.layerGroup();
+    const gothicFiltered = L.layerGroup();
+    const romanFiltered = L.layerGroup();
+    const greekFiltered = L.layerGroup();
+    const hebrewFiltered = L.layerGroup();
+    const cyrillicFiltered = L.layerGroup();
+    const glagolithicFiltered = L.layerGroup();
+    const poliBordersFiltered = L.layerGroup();
+    const outputFiltered = L.layerGroup();
+
+    // use jquery to load migration GeoJSON data
+    $.when(
+      $.getJSON("data/bishoprics.geojson"),
+      $.getJSON("data/conflicts.geojson"),
+      $.getJSON("data/ecclesiastical_borders.geojson"),
+      $.getJSON("data/fairs.geojson"),
+      $.getJSON("data/output_by_location_unique_cities.geojson"),
+      $.getJSON("data/paper_mills.geojson"),
+      $.getJSON("data/political_borders.geojson"),
+      $.getJSON("data/spread_of_printing.geojson"),
+      $.getJSON("data/trade_routes.geojson"),
+      $.getJSON("data/typography.geojson"),
+      $.getJSON("data/universities.geojson")
+      // when the files are done loading,
+      // identify them with names and process them through a function
+    ).done(function(bish, conf, eccl, fair, outp, pape, poli, spre, trad, typo, univ) {
+
+      const spreadOfPrinting = L.geoJson(spre, {
+        pointToLayer: function(feature, latlng) { // using pointToLayer...
+          return L.circleMarker(latlng, {
+            fillColor: 'red', // set the fill color
+            color: 'red', // set the border color
+            weight: 1, // set the weight of the border
+            fillOpacity: 0.8, // set the opacity of the fill color
+            radius: 4 // set the radii of the circles
+          });
+        },
+        onEachFeature: function(feature, layer) {
+
+          // identify the coordinates
+          const latlngStr = JSON.stringify([layer.getLatLng().lat, layer.getLatLng().lng]);
+
+          // bind a popup to the layer
+          layer.bindPopup('<h4>Spread of Printing Information</h4>' +
+            '<h5>City: ' + layer.feature.properties.PLACE +
+            '<br>Year of First Printing: ' + layer.feature.properties.YEAR +
+            '<br>Printer: ' + layer.feature.properties.PRINTER +
+            '<br><br><u>First Work</u>' +
+            '<br>Author: ' + layer.feature.properties.AUTHOR +
+            '<br>' + layer.feature.properties.ISTC + ' - <a href="' + 'https://data.cerl.org/istc/' + layer.feature.properties.ISTC + '"' + 'target="_blank" rel="noopener noreferrer">View the ISTC Record' + '</a>' +
+            '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+              'className': 'custom'
+            });
+
+          //define what happens on mouseover
+          layer.on("mouseover", function(e) {
+            layer.setStyle({
+              fillOpacity: 0.5,
+              color: 'yellow'
+            });
+          });
+
+          //define what happens on mouseout
+          layer.on("mouseout", function(e) {
+            layer.setStyle({
+              fillOpacity: 0.8,
+              color: 'red'
+            });
+          });
+
+        }
+      });
+
+      const conflicts = L.geoJson(conf, {
+        pointToLayer: function(feature, latlng) { // using pointToLayer...
+          return L.circleMarker(latlng, {
+            fillColor: 'black', // set the fill color
+            color: 'black', // set the border color
+            weight: 1, // set the weight of the border
+            fillOpacity: 0.8, // set the opacity of the fill color
+            radius: 4 // set the radii of the circles
+          });
+        },
+        onEachFeature: function(feature, layer) {
+
+          // identify the coordinates
+          const latlngStr = JSON.stringify([layer.getLatLng().lat, layer.getLatLng().lng]);
+
+          // bind a popup to the layer
+          layer.bindPopup('<h4>Conflict Information</h4>' +
+            '<h5>Name: ' + layer.feature.properties.NAME +
+            '<br>Conflict: ' + layer.feature.properties.CONFLICT +
+            '<br>Years: ' + layer.feature.properties.STRYEAR + ' - ' + layer.feature.properties.ENDYEAR +
+            '<br>Source: ' + layer.feature.properties.SOURCE +
+            '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+              'className': 'custom'
+            });
+
+          //define what happens on mouseover
+          layer.on("mouseover", function(e) {
+            layer.setStyle({
+              fillOpacity: 0.5,
+              color: 'yellow'
+            });
+          });
+
+          //define what happens on mouseout
+          layer.on("mouseout", function(e) {
+            layer.setStyle({
+              fillOpacity: 0.8,
+              color: 'black'
+            });
+          });
+
+        }
+      });
+
+      const fairs = L.geoJson(fair, {
+        pointToLayer: function(feature, latlng) { // using pointToLayer...
+          return L.circleMarker(latlng, {
+            fillColor: 'red', // set the fill color
+            color: 'gold', // set the border color
+            weight: 1, // set the weight of the border
+            fillOpacity: 0.8, // set the opacity of the fill color
+            radius: 4 // set the radii of the circles
+          });
+        },
+        onEachFeature: function(feature, layer) {
+
+          // identify the coordinates
+          const latlngStr = JSON.stringify([layer.getLatLng().lat, layer.getLatLng().lng]);
+
+          // bind a popup to the layer
+          layer.bindPopup('<h4>Fair Information</h4>' +
+            '<h5>Place: ' + layer.feature.properties.PLACE +
+            '<br>Text: ' + layer.feature.properties.TEXT +
+            '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+              'className': 'custom'
+            });
+
+          //define what happens on mouseover
+          layer.on("mouseover", function(e) {
+            layer.setStyle({
+              fillOpacity: 0.5,
+              weight: 2
+            });
+          });
+
+          //define what happens on mouseout
+          layer.on("mouseout", function(e) {
+            layer.setStyle({
+              fillOpacity: 0.8,
+              weight: 1
+            });
+          });
+
+        }
+      });
+
+      const universities = L.geoJson(univ, {
+        pointToLayer: function(feature, latlng) { // using pointToLayer...
+          return L.circleMarker(latlng, {
+            fillColor: '#0096FF', // set the fill color
+            color: '#0096FF', // set the border color
+            weight: 1, // set the weight of the border
+            fillOpacity: 0.8, // set the opacity of the fill color
+            radius: 4 // set the radii of the circles
+          });
+        },
+        onEachFeature: function(feature, layer) {
+
+          // identify the coordinates
+          const latlngStr = JSON.stringify([layer.getLatLng().lat, layer.getLatLng().lng]);
+
+          // bind a popup to the layer
+          layer.bindPopup('<h4>University Information</h4>' +
+            '<h5>Place: ' + layer.feature.properties.PLACE +
+            '<br>Year Established: ' + layer.feature.properties.YEAR +
+            '<br>Text: ' + layer.feature.properties.TEXT +
+            '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+              'className': 'custom'
+            });
+
+          //define what happens on mouseover
+          layer.on("mouseover", function(e) {
+            layer.setStyle({
+              fillOpacity: 0.5,
+              color: 'yellow'
+            });
+          });
+
+          //define what happens on mouseout
+          layer.on("mouseout", function(e) {
+            layer.setStyle({
+              fillOpacity: 0.8,
+              color: '#0096FF'
+            });
+          });
+
+        }
+      });
+
+      const mills = L.geoJson(pape, {
+        pointToLayer: function(feature, latlng) { // using pointToLayer...
+          return L.circleMarker(latlng, {
+            fillColor: 'yellow', // set the fill color
+            color: 'yellow', // set the border color
+            weight: 1, // set the weight of the border
+            fillOpacity: 0.8, // set the opacity of the fill color
+            radius: 4 // set the radii of the circles
+          });
+        },
+        onEachFeature: function(feature, layer) {
+
+          // identify the coordinates
+          const latlngStr = JSON.stringify([layer.getLatLng().lat, layer.getLatLng().lng]);
+
+          // bind a popup to the layer
+          layer.bindPopup('<h4>Mill City Information</h4>' +
+            '<h5>' + layer.feature.properties.CITY_NAME +
+            '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+              'className': 'custom'
+            });
+
+          //define what happens on mouseover
+          layer.on("mouseover", function(e) {
+            layer.setStyle({
+              fillOpacity: 0.5,
+              weight: 2
+            });
+          });
+
+          //define what happens on mouseout
+          layer.on("mouseout", function(e) {
+            layer.setStyle({
+              fillOpacity: 0.8,
+              weight: 1
+            });
+          });
+
+        }
+      });
+
+      const typography = L.geoJson(typo, {
+        pointToLayer: function(feature, latlng) {
+          const props = feature.properties;
+          if (props.CLASS == 'G') {
+            return L.marker(latlng, {
+              icon: L.icon({
+                iconUrl: 'icons/red.png',
+                iconSize: [12, 12], // size of the icon
+              })
+            });
+          }
+          if (props.CLASS == 'R') {
+            return L.marker(latlng, {
+              icon: L.icon({
+                iconUrl: 'icons/blue.png',
+                iconSize: [12, 12], // size of the icon
+              })
+            });
+          }
+          if (props.CLASS == 'Gr') {
+            return L.marker(latlng, {
+              icon: L.icon({
+                iconUrl: 'icons/orange.png',
+                iconSize: [12, 12], // size of the icon
+              })
+            });
+          }
+          if (props.CLASS == 'H') {
+            return L.marker(latlng, {
+              icon: L.icon({
+                iconUrl: 'icons/yellow.png',
+                iconSize: [12, 12], // size of the icon
+              })
+            });
+          }
+          if (props.CLASS == ' ') {
+            return L.marker(latlng, {
+              icon: L.icon({
+                iconUrl: 'icons/white.png',
+                iconSize: [12, 12], // size of the icon
+              })
+            });
+          }
+          if (props.CLASS == 'Gl') {
+            return L.marker(latlng, {
+              icon: L.icon({
+                iconUrl: 'icons/green.png',
+                iconSize: [12, 12], // size of the icon
+              })
+            });
+          }
+        },
+        onEachFeature: function(feature, layer) {
+
+          // identify the coordinates
+          const latlngStr = JSON.stringify([layer.getLatLng().lat, layer.getLatLng().lng]);
+          // define the layer properties
+          const props = layer.feature.properties;
+
+          // bind a popup to the layer
+          layer.bindPopup('<h4>Typography Information</h4>' +
+            '<h5>Type: ' + props.TYPE +
+            '<br>M Shape: ' + props.MSHAPE +
+            '<br>Printer: ' + props.PRINTER +
+            '<br>Place: ' + props.PLACE +
+            '<br><img src="' + props.GFTLNK + '" class=popupImage >' +
+            '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+              minWidth: 250,
+              'className': 'custom'
+            });
+
+            //define what happens on mouseover
+            layer.on("mouseover", function(e) {
+              if (props.CLASS == 'G') {
+                e.target.setIcon(L.icon({
+                  iconUrl: 'icons/red.png',
+                  iconSize: [16, 16], // size of the icon
+                }));
+              }
+              if (props.CLASS == 'R') {
+                e.target.setIcon(L.icon({
+                  iconUrl: 'icons/blue.png',
+                  iconSize: [16, 16], // size of the icon
+                }));
+              }
+              if (props.CLASS == 'Gr') {
+                e.target.setIcon(L.icon({
+                  iconUrl: 'icons/orange.png',
+                  iconSize: [16, 16], // size of the icon
+                }));
+              }
+              if (props.CLASS == 'H') {
+                e.target.setIcon(L.icon({
+                  iconUrl: 'icons/yellow.png',
+                  iconSize: [16, 16], // size of the icon
+                }));
+              }
+              if (props.CLASS == ' ') {
+                e.target.setIcon(L.icon({
+                  iconUrl: 'icons/white.png',
+                  iconSize: [16, 16], // size of the icon
+                }));
+              }
+              if (props.CLASS == 'Gl') {
+                e.target.setIcon(L.icon({
+                  iconUrl: 'icons/green.png',
+                  iconSize: [16, 16], // size of the icon
+                }));
+              }
+            });
+
+            //define what happens on mouseout
+            layer.on("mouseout", function(e) {
+              if (props.CLASS == 'G') {
+                e.target.setIcon(L.icon({
+                  iconUrl: 'icons/red.png',
+                  iconSize: [12, 12], // size of the icon
+                }));
+              }
+              if (props.CLASS == 'R') {
+                e.target.setIcon(L.icon({
+                  iconUrl: 'icons/blue.png',
+                  iconSize: [12, 12], // size of the icon
+                }));
+              }
+              if (props.CLASS == 'Gr') {
+                e.target.setIcon(L.icon({
+                  iconUrl: 'icons/orange.png',
+                  iconSize: [12, 12], // size of the icon
+                }));
+              }
+              if (props.CLASS == 'H') {
+                e.target.setIcon(L.icon({
+                  iconUrl: 'icons/yellow.png',
+                  iconSize: [12, 12], // size of the icon
+                }));
+              }
+              if (props.CLASS == ' ') {
+                e.target.setIcon(L.icon({
+                  iconUrl: 'icons/white.png',
+                  iconSize: [12, 12], // size of the icon
+                }));
+              }
+              if (props.CLASS == 'Gl') {
+                e.target.setIcon(L.icon({
+                  iconUrl: 'icons/green.png',
+                  iconSize: [12, 12], // size of the icon
+                }));
+              }
+            });
+
+        }
+      });
+
+      const poliBorders = L.geoJson(poli, {
+        style: function(feature) {
+          return {
+            color: '#A9A9A9',
+          }
+        }
+      });
+
+      const output = L.geoJson(outp, {
+        pointToLayer: function(feature, latlng) { // using pointToLayer...
+          return L.circleMarker(latlng, {
+            fillColor: '#ffae42', // set the fill color
+            color: 'black', // set the border color
+            opacity: 0.5, // set the opacity of the border
+            weight: 1, // set the weight of the border
+            fillOpacity: 0.8, // set the opacity of the fill color
+            radius: 4 // set the radii of the circles
+          });
+        },
+        onEachFeature: function(feature, layer) {
+
+          //define what happens on mouseover
+          layer.on("mouseover", function(e) {
+            layer.setStyle({
+              fillOpacity: 0.5,
+              color: 'yellow'
+            });
+          });
+
+          //define what happens on mouseout
+          layer.on("mouseout", function(e) {
+            layer.setStyle({
+              fillOpacity: 0.8,
+              color: 'black'
+            });
+          });
+
+        }
+      });
+
+      const tradeRoutes = L.geoJson(trad, {
+        style: function(feature) {
+          return {
+            color: '#ccffcc',
+            weight: 2
+          }
+        }
+      });
+
+      const ecclesiasticalBorders = L.geoJson(eccl, {
+        style: function style(feature) {
+          return {
+            fillColor: getColor(feature.properties.Id),
+            fillOpacity: 0.8,
+            color: 'rgb(110,110,110)',
+            weight: 1
+          };
+        }
+      });
+
+      const bishoprics = L.geoJson(bish, {
+        pointToLayer: function(feature, latlng) {
+          return L.marker(latlng, {
+            icon: L.icon({
+              iconUrl: 'icons/bishoprics.png',
+              iconSize: [7, 16] // size of the icon
+            })
+          })
+        },
+        onEachFeature: function(feature, layer) {
+          // identify the coordinates
+          const latlngStr = JSON.stringify([layer.getLatLng().lat, layer.getLatLng().lng]);
+          // define the layer properties
+          const props = layer.feature.properties;
+          // bind a popup to the layer
+          layer.bindPopup('<h4>Bishopric Information</h4>' +
+            '<h5>Location: ' + props.PLACE +
+            '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+              minWidth: 250,
+              'className': 'custom'
+          });
+          //define what happens on mouseover
+          layer.on("mouseover", function(e) {
+            e.target.setIcon(L.icon({
+              iconUrl: 'icons/bishoprics.png',
+              iconSize: [9, 20], // size of the icon
+            }));
+          });
+          //define what happens on mouseout
+          layer.on("mouseout", function(e) {
+            e.target.setIcon(L.icon({
+              iconUrl: 'icons/bishoprics.png',
+              iconSize: [7, 16], // size of the icon
+            }));
+          });
+        }
+      });
+
+      const overlaysTree = {
+        label: '<font style="font-size:14px">Layers</font>',
+        collapsed: false,
+        children: [{
+            label: 'Spread of Printing<div id="printingDiv" class="lcontrol" style="display:none">Data collated from digital and print sources. <a href="mailto:gprickman@folger.edu">Improve this data</a>.</div>',
+            layer: spreadOfPrintingFiltered
+          },
+          {
+            label: 'Output by Location<div id="outputDiv" class="lcontrol" style="display:none">Data generated from the <a href="https://data.cerl.org/istc/_search" target="_blank" rel="noopener noreferrer">ISTC</a>.</div>',
+            layer: outputFiltered
+          },
+          {
+            label: 'Ecclesiastical Borders<div id="eccDiv" class="lcontrol" style="display:none">Geographic data mined from William Shepherd\'s Historical Atlas, 1926 edition. "Ecclesiastical Map of Western Europe in the Middle Ages" [p. 94-95]. Shapefile created by Rob Shepard (GIS Librarian, University of Iowa) and Emma Dellopoulous (GIS Intern, University of Iowa). <a href="mailto:gprickman@folger.edu">Improve this data</a>.</div>',
+            layer: ecclesiasticalBorders
+          },
+          {
+            label: 'Political Borders<div id="poliDiv" class="lcontrol" style="display:none">Borders are drawn in ten year increments and all boundaries within the selected time range are displayed. Data collated from digital and print sources. <a href="mailto:gprickman@folger.edu">Improve this data</a>.</div>',
+            layer: poliBordersFiltered
+          },
+          {
+            label: 'Trade Routes<div id="tradeDiv" class="lcontrol" style="display:none">Data collated from digital and print sources. <a href="mailto:gprickman@folger.edu">Improve this data</a>.</div>',
+            layer: tradeRoutes
+          },
+          {
+            label: 'Bishoprics<div id="bishopDiv" class="lcontrol" style="display:none">Data collated from digital and print sources. <a href="mailto:gprickman@folger.edu">Improve this data</a>.</div>',
+            layer: bishoprics
+          },
+          {
+            label: 'Paper Mills<div id="millsDiv" class="lcontrol" style="display:none">Data collated from digital and print sources. <a href="mailto:gprickman@folger.edu">Improve this data</a>.</div>',
+            layer: mills
+          },
+          {
+            label: 'Universities<div id="univDiv" class="lcontrol" style="display:none">Data collated from digital and print sources. <a href="mailto:gprickman@folger.edu">Improve this data</a>.</div>',
+            layer: universitiesFiltered
+          },
+          {
+            label: 'Fairs<div id="fairsDiv" class="lcontrol" style="display:none">Data collated from digital and print sources. <a href="mailto:gprickman@folger.edu">Improve this data</a>.</div>',
+            layer: fairs
+          },
+          {
+            label: 'Conflicts<div id="conflictsDiv" class="lcontrol" style="display:none">Data collated from digital and print sources. <a href="mailto:gprickman@folger.edu">Improve this data</a>.</div>',
+            layer: conflictsFiltered
+          },
+          {
+            label: 'Typography<div id="typographyDiv" class="lcontrol" style="display:none">Data generated from the <a href="https://tw.staatsbibliothek-berlin.de/" target="_blank" rel="noopener noreferrer">Typenrepertorium</a>.</div>',
+            collapsed: true,
+            children: [{
+                label: 'Gothic',
+                layer: gothicFiltered
+              },
+              {
+                label: 'Romanesque',
+                layer: romanFiltered
+              },
+              {
+                label: 'Greek',
+                layer: greekFiltered
+              },
+              {
+                label: 'Hebrew',
+                layer: hebrewFiltered
+              },
+              {
+                label: 'Cyrillic',
+                layer: cyrillicFiltered
+              },
+              {
+                label: 'Glagolithic',
+                layer: glagolithicFiltered
+              },
+            ]
+          }
+        ]
+      };
+
+      L.control.layers.tree(null, overlaysTree, {
+        collapsed: false,
+        closedSymbol: '&#9656',
+        openedSymbol: '&#9662'
+      }).addTo(map);
+
+      // define the layer labels in the layer control
+      let layersList = $('.leaflet-layerstree-header-name');
+
+      // loop through all of the layer labels
+      for (var i = 0; i < layersList.length; i++) {
+        // if one of them is Gothic...
+        if (layersList[i].innerText == 'Gothic') {
+          // check if it is hidden or visible
+          if ($('.leaflet-layerstree-header-name').is(':hidden') == true) {
+            document.getElementById("typographyDiv").style.display = "none";
+          } else {
+            document.getElementById("typographyDiv").style.display = "block";
+          }
+        }
+      };
+
+      // listen for a click on the collapsible headers in the layer control
+      $('.leaflet-layerstree-header.leaflet-layerstree-header-pointer').on('click', function(event) {
+
+        // define the layer labels in the layer control
+        let layersList = $('.leaflet-layerstree-header-name');
+
+        // loop through all of the layer labels
+        for (var i = 0; i < layersList.length; i++) {
+          // if one of them is Gothic...
+          if (layersList[i].innerText == 'Gothic') {
+            // check if it is hidden or visible
+            if ($('.leaflet-layerstree-header-name').is(':hidden') == true) {
+              document.getElementById("typographyDiv").style.display = "none";
+            } else {
+              document.getElementById("typographyDiv").style.display = "block";
+            }
+          }
+        };
+
+      });
+
+      // Test to see which layers are on when the map opens
+      if (map.hasLayer(spreadOfPrintingFiltered)) {
+        document.getElementById("printingDiv").style.display = "block";
+      } else {
+        document.getElementById("printingDiv").style.display = "none";
+      }
+      if (map.hasLayer(outputFiltered)) {
+        document.getElementById("outputDiv").style.display = "block";
+      } else {
+        document.getElementById("outputDiv").style.display = "none";
+      }
+      if (map.hasLayer(ecclesiasticalBorders)) {
+        document.getElementById("eccDiv").style.display = "block";
+      } else {
+        document.getElementById("eccDiv").style.display = "none";
+      }
+      if (map.hasLayer(poliBordersFiltered)) {
+        document.getElementById("poliDiv").style.display = "block";
+      } else {
+        document.getElementById("poliDiv").style.display = "none";
+      }
+      if (map.hasLayer(tradeRoutes)) {
+        document.getElementById("tradeDiv").style.display = "block";
+      } else {
+        document.getElementById("tradeDiv").style.display = "none";
+      }
+      if (map.hasLayer(bishoprics)) {
+        document.getElementById("bishopDiv").style.display = "block";
+      } else {
+        document.getElementById("bishopDiv").style.display = "none";
+      }
+      if (map.hasLayer(mills)) {
+        document.getElementById("millsDiv").style.display = "block";
+      } else {
+        document.getElementById("millsDiv").style.display = "none";
+      }
+      if (map.hasLayer(universitiesFiltered)) {
+        document.getElementById("univDiv").style.display = "block";
+      } else {
+        document.getElementById("univDiv").style.display = "none";
+      }
+      if (map.hasLayer(fairs)) {
+        document.getElementById("fairsDiv").style.display = "block";
+      } else {
+        document.getElementById("fairsDiv").style.display = "none";
+      }
+      if (map.hasLayer(conflictsFiltered)) {
+        document.getElementById("conflictsDiv").style.display = "block";
+      } else {
+        document.getElementById("conflictsDiv").style.display = "none";
+      };
+
+      // Test to see which layers are turned on or off by the user
+      map.on({
+        overlayremove: function() {
+          if (map.hasLayer(spreadOfPrintingFiltered)) {
+            document.getElementById("printingDiv").style.display = "block";
+          } else {
+            document.getElementById("printingDiv").style.display = "none";
+          }
+          if (map.hasLayer(outputFiltered)) {
+            document.getElementById("outputDiv").style.display = "block";
+          } else {
+            document.getElementById("outputDiv").style.display = "none";
+          }
+          if (map.hasLayer(ecclesiasticalBorders)) {
+            document.getElementById("eccDiv").style.display = "block";
+          } else {
+            document.getElementById("eccDiv").style.display = "none";
+          }
+          if (map.hasLayer(poliBordersFiltered)) {
+            document.getElementById("poliDiv").style.display = "block";
+          } else {
+            document.getElementById("poliDiv").style.display = "none";
+          }
+          if (map.hasLayer(tradeRoutes)) {
+            document.getElementById("tradeDiv").style.display = "block";
+          } else {
+            document.getElementById("tradeDiv").style.display = "none";
+          }
+          if (map.hasLayer(bishoprics)) {
+            document.getElementById("bishopDiv").style.display = "block";
+          } else {
+            document.getElementById("bishopDiv").style.display = "none";
+          }
+          if (map.hasLayer(mills)) {
+            document.getElementById("millsDiv").style.display = "block";
+          } else {
+            document.getElementById("millsDiv").style.display = "none";
+          }
+          if (map.hasLayer(universitiesFiltered)) {
+            document.getElementById("univDiv").style.display = "block";
+          } else {
+            document.getElementById("univDiv").style.display = "none";
+          }
+          if (map.hasLayer(fairs)) {
+            document.getElementById("fairsDiv").style.display = "block";
+          } else {
+            document.getElementById("fairsDiv").style.display = "none";
+          }
+          if (map.hasLayer(conflictsFiltered)) {
+            document.getElementById("conflictsDiv").style.display = "block";
+          } else {
+            document.getElementById("conflictsDiv").style.display = "none";
+          };
+        },
+        overlayadd: function() {
+          if (map.hasLayer(spreadOfPrintingFiltered)) {
+            document.getElementById("printingDiv").style.display = "block";
+          } else {
+            document.getElementById("printingDiv").style.display = "none";
+          }
+          if (map.hasLayer(outputFiltered)) {
+            document.getElementById("outputDiv").style.display = "block";
+          } else {
+            document.getElementById("outputDiv").style.display = "none";
+          }
+          if (map.hasLayer(ecclesiasticalBorders)) {
+            document.getElementById("eccDiv").style.display = "block";
+          } else {
+            document.getElementById("eccDiv").style.display = "none";
+          }
+          if (map.hasLayer(poliBordersFiltered)) {
+            document.getElementById("poliDiv").style.display = "block";
+          } else {
+            document.getElementById("poliDiv").style.display = "none";
+          }
+          if (map.hasLayer(tradeRoutes)) {
+            document.getElementById("tradeDiv").style.display = "block";
+          } else {
+            document.getElementById("tradeDiv").style.display = "none";
+          }
+          if (map.hasLayer(bishoprics)) {
+            document.getElementById("bishopDiv").style.display = "block";
+          } else {
+            document.getElementById("bishopDiv").style.display = "none";
+          }          
+          if (map.hasLayer(mills)) {
+            document.getElementById("millsDiv").style.display = "block";
+          } else {
+            document.getElementById("millsDiv").style.display = "none";
+          }
+          if (map.hasLayer(universitiesFiltered)) {
+            document.getElementById("univDiv").style.display = "block";
+          } else {
+            document.getElementById("univDiv").style.display = "none";
+          }
+          if (map.hasLayer(fairs)) {
+            document.getElementById("fairsDiv").style.display = "block";
+          } else {
+            document.getElementById("fairsDiv").style.display = "none";
+          }
+          if (map.hasLayer(conflictsFiltered)) {
+            document.getElementById("conflictsDiv").style.display = "block";
+          } else {
+            document.getElementById("conflictsDiv").style.display = "none";
+          };
+        }
+      });
+
+      // call the sequenceUI function
+      sequenceUI(conflicts, spreadOfPrinting, universities, typography, poliBorders, output);
+
+      // define firstYear
+      let firstYear = $('#slider-range').slider("values", 0);
+      // define secondYear
+      let secondYear = $('#slider-range').slider("values", 1);
+
+      // call the updateData function
+      updateData(conflicts, spreadOfPrinting, universities, typography, poliBorders, output, firstYear, secondYear);
+
+    });
+
+    // define the UI slider with a function called "sequenceUI"
+    function sequenceUI(conflicts, spreadOfPrinting, universities, typography, poliBorders, output) {
+      $("#slider-range").slider({
+        range: true,
+        min: 1450,
+        max: 1500,
+        values: [1450, 1460],
+        slide: function(event, ui) {
+          $("#amount").val(ui.values[0] + " - " + ui.values[1]);
+          // define the array of values in every chosen ui slider range
+          const sliderRange = range(ui.values[0], ui.values[1], 1);
+          // iterate through the conflicts layer
+          conflicts.eachLayer(function(layer) {
+            let startYear = layer.feature.properties.STRYEAR;
+            let endYear = layer.feature.properties.ENDYEAR;
+            if (startYear >= ui.values[0] && endYear <= ui.values[1]) {
+              // if there is a match, add the layer to the conflictsFiltered layer group
+              conflictsFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the conflictsFiltered layer group
+              conflictsFiltered.removeLayer(layer);
+            };
+          });
+          // iterate through the spreadOfPrinting layer
+          spreadOfPrinting.eachLayer(function(layer) {
+            let year = layer.feature.properties.YEAR;
+            if (year <= ui.values[1]) {
+              // if there is a match, add the layer to the spreadOfPrintingFiltered layer group
+              spreadOfPrintingFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the spreadOfPrintingFiltered layer group
+              spreadOfPrintingFiltered.removeLayer(layer);
+            };
+          });
+          // iterate through the universities layer
+          universities.eachLayer(function(layer) {
+            let year = layer.feature.properties.YEAR;
+            if (year <= ui.values[1]) {
+              // if there is a match, add the layer to the universitiesFiltered layer group
+              universitiesFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the universitiesFiltered layer group
+              universitiesFiltered.removeLayer(layer);
+            };
+          });
+          // iterate through the typography layer
+          typography.eachLayer(function(layer) {
+            let props = layer.feature.properties;
+            let startYear = props.START;
+            let endYear = props.END;
+            if (startYear >= ui.values[0] && endYear <= ui.values[1] && props.CLASS == 'G') {
+              // if there is a match, add the layer to the gothicFiltered layer group
+              gothicFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the gothicFiltered layer group
+              gothicFiltered.removeLayer(layer);
+            };
+            if (startYear >= ui.values[0] && endYear <= ui.values[1] && props.CLASS == 'R') {
+              // if there is a match, add the layer to the romanFiltered layer group
+              romanFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the romanFiltered layer group
+              romanFiltered.removeLayer(layer);
+            };
+            if (startYear >= ui.values[0] && endYear <= ui.values[1] && props.CLASS == 'Gr') {
+              // if there is a match, add the layer to the greekFiltered layer group
+              greekFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the greekFiltered layer group
+              greekFiltered.removeLayer(layer);
+            };
+            if (startYear >= ui.values[0] && endYear <= ui.values[1] && props.CLASS == 'H') {
+              // if there is a match, add the layer to the hebrewFiltered layer group
+              hebrewFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the hebrewFiltered layer group
+              hebrewFiltered.removeLayer(layer);
+            };
+            if (startYear >= ui.values[0] && endYear <= ui.values[1] && props.CLASS == ' ') {
+              // if there is a match, add the layer to the cyrillicFiltered layer group
+              cyrillicFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the cyrillicFiltered layer group
+              cyrillicFiltered.removeLayer(layer);
+            };
+            if (startYear >= ui.values[0] && endYear <= ui.values[1] && props.CLASS == 'Gl') {
+              // if there is a match, add the layer to the glagolithicFiltered layer group
+              glagolithicFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the glagolithicFiltered layer group
+              glagolithicFiltered.removeLayer(layer);
+            };
+          });
+          // iterate through the poliBorders layer
+          poliBorders.eachLayer(function(layer) {
+            let startYear = layer.feature.properties.START;
+            let endYear = layer.feature.properties.END;
+            // define the array of values in each border range
+            let poliRange = range(startYear, endYear, 1);
+            // check for matching values
+            let intersection = poliRange.filter(element => sliderRange.includes(element));
+            // get the maximum value
+            let max = intersection.reduce((a, b) => Math.max(a, b), -Infinity);
+            // remove infinity and check if max is between the first and last slider years
+            if (max != -Infinity && max >= ui.values[0] && max <= ui.values[1]) {
+              // if there is a match, add the layer to the poliBordersFiltered layer group
+              poliBordersFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the poliBordersFiltered layer group
+              poliBordersFiltered.removeLayer(layer);
+            }
+            /*
+                      if (startYear >= ui.values[0] && endYear <= ui.values[1]) {
+                        // if there is a match, add the layer to the poliBordersFiltered layer group
+                        poliBordersFiltered.addLayer(layer);
+                      } else {
+                        // otherwise, remove the layer from the poliBordersFiltered layer group
+                        poliBordersFiltered.removeLayer(layer);
+                      }
+            */
+          });
+          // iterate through the output layer
+          output.eachLayer(function(layer) {
+
+            // define the layer properties
+            let props = layer.feature.properties;
+            // define the array of values in the selected time range
+            let selectedRange = range(ui.values[0], ui.values[1], 1);
+            // define an empty array to hold the annual output totals
+            let annualVals = [];
+            // loop through all years in the selected range
+            for (let i = 0; i < selectedRange.length; i++) {
+              // define each year
+              let year = selectedRange[i];
+              // push the annual output totals for each year in the range to the annualVals array
+              annualVals.push(props[year]);
+            }
+            // sum all of the outputs in the range for each place
+            const sum = annualVals.reduce((accumulator, value) => {
+              return accumulator + value;
+            }, 0);
+            // set the layer radius according to the sum of all output in the range
+            layer.setRadius((Math.sqrt(sum / Math.PI)) * 2);
+            // if the sum is greater than zero...
+            if (sum > 0) {
+              // add the layer to the outputFiltered layer group
+              outputFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the outputFiltered layer group
+              outputFiltered.removeLayer(layer);
+            }
+            // FOR THE POPUP...
+            // identify the coordinates
+            const latlngStr = JSON.stringify([layer.getLatLng().lat, layer.getLatLng().lng]);
+            // bind a popup to the layer
+            layer.bindPopup('<h4>Output by Location</h4>' +
+              '<h5>Place: ' + layer.feature.properties.PLACE +
+              '<br>Timespan: ' + ui.values[0] + '-' + ui.values[1] +
+              '<br>Output: ' + sum +
+              '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+                minWidth: 250,
+                'className': 'custom'
+              });
+          });
+        }
+      });
+      $("#amount").val($("#slider-range").slider("values", 0) +
+        " - " + $("#slider-range").slider("values", 1));
+    };
+
+    function updateData(conflicts, spreadOfPrinting, universities, typography, poliBorders, output, firstYear, secondYear) {
+      // iterate through the conflicts layer
+      conflicts.eachLayer(function(layer) {
+        let startYear = layer.feature.properties.STRYEAR;
+        let endYear = layer.feature.properties.ENDYEAR;
+        if (startYear >= firstYear && endYear <= secondYear) {
+          // if there is a match, add the layer to the conflictsFiltered layer group
+          conflictsFiltered.addLayer(layer);
+        } else {
+          // otherwise, remove the layer from the conflictsFiltered layer group
+          conflictsFiltered.removeLayer(layer);
+        };
+      });
+      // iterate through the spreadOfPrinting layer
+      spreadOfPrinting.eachLayer(function(layer) {
+        let year = layer.feature.properties.YEAR;
+        if (year <= secondYear) {
+          // if there is a match, add the layer to the spreadOfPrintingFiltered layer group
+          spreadOfPrintingFiltered.addLayer(layer);
+        } else {
+          // otherwise, remove the layer from the spreadOfPrintingFiltered layer group
+          spreadOfPrintingFiltered.removeLayer(layer);
+        };
+      });
+      // iterate through the universities layer
+      universities.eachLayer(function(layer) {
+        let year = layer.feature.properties.YEAR;
+        if (year <= secondYear) {
+          // if there is a match, add the layer to the universitiesFiltered layer group
+          universitiesFiltered.addLayer(layer);
+        } else {
+          // otherwise, remove the layer from the universitiesFiltered layer group
+          universitiesFiltered.removeLayer(layer);
+        };
+      });
+      // iterate through the typography layer
+      typography.eachLayer(function(layer) {
+        let props = layer.feature.properties;
+        let startYear = props.START;
+        let endYear = props.END;
+        if (startYear >= firstYear && endYear <= secondYear && props.CLASS == 'G') {
+          // if there is a match, add the layer to the gothicFiltered layer group
+          gothicFiltered.addLayer(layer);
+        } else {
+          // otherwise, remove the layer from the gothicFiltered layer group
+          gothicFiltered.removeLayer(layer);
+        };
+        if (startYear >= firstYear && endYear <= secondYear && props.CLASS == 'R') {
+          // if there is a match, add the layer to the romanFiltered layer group
+          romanFiltered.addLayer(layer);
+        } else {
+          // otherwise, remove the layer from the romanFiltered layer group
+          romanFiltered.removeLayer(layer);
+        };
+        if (startYear >= firstYear && endYear <= secondYear && props.CLASS == 'Gr') {
+          // if there is a match, add the layer to the greekFiltered layer group
+          greekFiltered.addLayer(layer);
+        } else {
+          // otherwise, remove the layer from the greekFiltered layer group
+          greekFiltered.removeLayer(layer);
+        };
+        if (startYear >= firstYear && endYear <= secondYear && props.CLASS == 'H') {
+          // if there is a match, add the layer to the hebrewFiltered layer group
+          hebrewFiltered.addLayer(layer);
+        } else {
+          // otherwise, remove the layer from the hebrewFiltered layer group
+          hebrewFiltered.removeLayer(layer);
+        };
+        if (startYear >= firstYear && endYear <= secondYear && props.CLASS == ' ') {
+          // if there is a match, add the layer to the cyrillicFiltered layer group
+          cyrillicFiltered.addLayer(layer);
+        } else {
+          // otherwise, remove the layer from the cyrillicFiltered layer group
+          cyrillicFiltered.removeLayer(layer);
+        };
+        if (startYear >= firstYear && endYear <= secondYear && props.CLASS == 'Gl') {
+          // if there is a match, add the layer to the glagolithicFiltered layer group
+          glagolithicFiltered.addLayer(layer);
+        } else {
+          // otherwise, remove the layer from the glagolithicFiltered layer group
+          glagolithicFiltered.removeLayer(layer);
+        };
+      });
+      // iterate through the poliBorders layer
+      poliBorders.eachLayer(function(layer) {
+        let startYear = layer.feature.properties.START;
+        let endYear = layer.feature.properties.END;
+        if (startYear >= firstYear && endYear <= secondYear) {
+          // if there is a match, add the layer to the poliBordersFiltered layer group
+          poliBordersFiltered.addLayer(layer);
+        } else {
+          // otherwise, remove the layer from the poliBordersFiltered layer group
+          poliBordersFiltered.removeLayer(layer);
+        }
+      });
+      // iterate through the output layer
+      output.eachLayer(function(layer) {
+        // define the layer properties
+        let props = layer.feature.properties;
+        // define the array of values in the selected time range
+        let selectedRange = range(firstYear, secondYear, 1);
+        // define an empty array to hold the annual output totals
+        let annualVals = [];
+        // loop through all years in the selected range
+        for (let i = 0; i < selectedRange.length; i++) {
+          // define each year
+          let year = selectedRange[i];
+          // push the annual output totals for each year in the range to the annualVals array
+          annualVals.push(props[year]);
+        }
+        // sum all of the outputs in the range for each place
+        const sum = annualVals.reduce((accumulator, value) => {
+          return accumulator + value;
+        }, 0);
+        // set the layer radius according to the sum of all output in the range
+        layer.setRadius((Math.sqrt(sum / Math.PI)) * 2);
+        // if the sum is greater than zero...
+        if (sum > 0) {
+          // add the layer to the outputFiltered layer group
+          outputFiltered.addLayer(layer);
+        } else {
+          // otherwise, remove the layer from the outputFiltered layer group
+          outputFiltered.removeLayer(layer);
+        }
+        // FOR THE POPUP...
+        // identify the coordinates
+        const latlngStr = JSON.stringify([layer.getLatLng().lat, layer.getLatLng().lng]);
+        // bind a popup to the layer
+        layer.bindPopup('<h4>Output by Location</h4>' +
+          '<h5>Place: ' + layer.feature.properties.PLACE +
+          '<br>Timespan: ' + firstYear + '-' + secondYear +
+          '<br>Output: ' + sum +
+          '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+            minWidth: 250,
+            'className': 'custom'
+          });
+
+      });
+    };
+
+    // Define a function for zooming to point locations
+    function getLoc(latlng) {
+      map.flyTo(JSON.parse(latlng), 8);
+    };
+  </script>
+</body>
+
+</html>
