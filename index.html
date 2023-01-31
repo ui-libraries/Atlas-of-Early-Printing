@@ -65,8 +65,11 @@
     }
 
     .leaflet-control-layers-expanded .leaflet-control-layers-list {
+      max-height: 50vh;
+      min-width: 175px;
       font-family: 'Baskervville', serif;
       /*font-size: 13px;*/
+      overflow-y: auto;
     }
 
     .custom .leaflet-popup-content {
@@ -968,7 +971,7 @@
             document.getElementById("bishopDiv").style.display = "block";
           } else {
             document.getElementById("bishopDiv").style.display = "none";
-          }          
+          }
           if (map.hasLayer(mills)) {
             document.getElementById("millsDiv").style.display = "block";
           } else {
