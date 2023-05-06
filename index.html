@@ -44,13 +44,53 @@
       border-radius: 3px;
       box-shadow: 0px 0px 0px 2px rgba(0, 0, 0, 0.3);
     }
-
+    #button-container {
+      display: inline-flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    button {
+        height: 28px;
+        width: 28px;
+        display: inline-block;
+        padding: 0;
+        border: 0;
+        font: inherit;
+        cursor: pointer;
+        background: transparent;
+        color: #0078A8;
+        -webkit-appearance: none;
+        vertical-align: middle;
+    }
+    #play {
+      display: flex;
+      align-items: center;
+      margin-left: 0px;
+      padding: 5px 10px;
+      background-color: #ccc;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+    #stop {
+      display: flex;
+      align-items: center;
+      margin-left: 10px;
+      padding: 0px 0px 2px 10px;
+      background-color: #ccc;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
     #slider-range {
-      /*position: fixed;
+      position: relative;
       bottom: 10px;
-      left: 10px;*/
+      left: 0px;
       width: 100%;
       z-index: 700;
+      margin-top: 10px;      
     }
 
     #date {
@@ -97,27 +137,6 @@
       font-weight: normal;
       font-size: 13px;
       margin: 0px;
-    }
-
-    /*
-    button {
-      background:none;
-      border:none;
-      padding: 0;
-    }
-*/
-
-    button {
-      display: inline;
-      padding: 0;
-      border: 0;
-      font: inherit;
-      text-decoration: underline;
-      cursor: pointer;
-      background: transparent;
-      color: #0078A8;
-
-      -webkit-appearance: none;
     }
 
     .lcontrol {
@@ -182,8 +201,11 @@
     <p>
       <label for="amount" id="date">Date range:</label>
       <input type="text" id="amount" readonly style="border:0; color:#00000;">
-    </p>
-
+    </p>  
+    <div id="button-container">
+        <button id="play">&#9654;</button>
+        <button id="stop">&#9632;</button>
+    </div>
     <div id="slider-range"></div>
   </div>
 
@@ -1003,6 +1025,9 @@
       // define secondYear
       let secondYear = $('#slider-range').slider("values", 1);
 
+      // define the slider range
+      const sliderRange = range(firstYear, secondYear, 1);
+
       // call the updateData function
       updateData(conflicts, spreadOfPrinting, universities, typography, poliBorders, output, firstYear, secondYear);
 
@@ -1010,11 +1035,63 @@
 
     // define the UI slider with a function called "sequenceUI"
     function sequenceUI(conflicts, spreadOfPrinting, universities, typography, poliBorders, output) {
+      
+      let animation; // define the animation variable as a global variable
+
+      // when the stop button is clicked...
+      $("#stop").click(function () {
+        // make the animation stop
+        clearInterval(animation);
+      });
+
+      // define the play button variable
+      const playButton = document.getElementById("play");
+
+      // add event listener to play button
+      playButton.addEventListener("click", function () {
+        // define the start and end values to animate
+        const start = 1450;
+        const end = 1500;
+
+        // define the interval in milliseconds between animation steps
+        const interval = 1000;
+
+        // define the current value as the starting value
+        let currentValue = 1460;
+
+        // define the animation function
+        const animateSlider = function () {
+          // set the slider value to the current value
+          $("#slider-range").slider("values", [currentValue - 10, currentValue]);
+
+          // update the text input with the current slider values
+          $("#amount").val(currentValue - 10 + " - " + currentValue);
+
+          // define the array of values in every chosen ui slider range
+          const sliderRange = range(currentValue - 10, currentValue, 1);
+
+          slideData(currentValue, conflicts, spreadOfPrinting, universities, typography, poliBorders, output);
+
+          // increment the current value by 10
+          currentValue += 10;
+
+          // if the current value is greater than the end value, stop the animation
+          if (currentValue > end) {
+            clearInterval(animation);
+          }
+        };
+
+        // call the animation function every interval milliseconds
+        animation = setInterval(animateSlider, interval);
+      }); 
+      
       $("#slider-range").slider({
         range: true,
         min: 1450,
         max: 1500,
         values: [1450, 1460],
+        step: 1,
+        animate: "slow",        
         slide: function(event, ui) {
           $("#amount").val(ui.values[0] + " - " + ui.values[1]);
           // define the array of values in every chosen ui slider range
@@ -1105,33 +1182,16 @@
           poliBorders.eachLayer(function(layer) {
             let startYear = layer.feature.properties.START;
             let endYear = layer.feature.properties.END;
-            // define the array of values in each border range
-            let poliRange = range(startYear, endYear, 1);
-            // check for matching values
-            let intersection = poliRange.filter(element => sliderRange.includes(element));
-            // get the maximum value
-            let max = intersection.reduce((a, b) => Math.max(a, b), -Infinity);
-            // remove infinity and check if max is between the first and last slider years
-            if (max != -Infinity && max >= ui.values[0] && max <= ui.values[1]) {
+            if (endYear == Math.floor(ui.values[1]/10)*10+10) {
               // if there is a match, add the layer to the poliBordersFiltered layer group
               poliBordersFiltered.addLayer(layer);
             } else {
               // otherwise, remove the layer from the poliBordersFiltered layer group
               poliBordersFiltered.removeLayer(layer);
             }
-            /*
-                      if (startYear >= ui.values[0] && endYear <= ui.values[1]) {
-                        // if there is a match, add the layer to the poliBordersFiltered layer group
-                        poliBordersFiltered.addLayer(layer);
-                      } else {
-                        // otherwise, remove the layer from the poliBordersFiltered layer group
-                        poliBordersFiltered.removeLayer(layer);
-                      }
-            */
           });
           // iterate through the output layer
           output.eachLayer(function(layer) {
-
             // define the layer properties
             let props = layer.feature.properties;
             // define the array of values in the selected time range
@@ -1175,7 +1235,7 @@
         }
       });
       $("#amount").val($("#slider-range").slider("values", 0) +
-        " - " + $("#slider-range").slider("values", 1));
+        " - " + $("#slider-range").slider("values", 1));  
     };
 
     function updateData(conflicts, spreadOfPrinting, universities, typography, poliBorders, output, firstYear, secondYear) {
@@ -1260,12 +1320,12 @@
           // otherwise, remove the layer from the glagolithicFiltered layer group
           glagolithicFiltered.removeLayer(layer);
         };
-      });
+      });    
       // iterate through the poliBorders layer
       poliBorders.eachLayer(function(layer) {
         let startYear = layer.feature.properties.START;
         let endYear = layer.feature.properties.END;
-        if (startYear >= firstYear && endYear <= secondYear) {
+        if (endYear == Math.floor(secondYear/10)*10+10) {
           // if there is a match, add the layer to the poliBordersFiltered layer group
           poliBordersFiltered.addLayer(layer);
         } else {
@@ -1316,6 +1376,146 @@
           });
 
       });
+    };
+
+    // Define a function to update the data based on the slider 
+    function slideData(currentValue, conflicts, spreadOfPrinting, universities, typography, poliBorders, output) {
+          // iterate through the conflicts layer
+          conflicts.eachLayer(function(layer) {
+            let startYear = layer.feature.properties.STRYEAR;
+            let endYear = layer.feature.properties.ENDYEAR;
+            if (startYear >= currentValue - 10 && endYear <= currentValue) {
+              // if there is a match, add the layer to the conflictsFiltered layer group
+              conflictsFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the conflictsFiltered layer group
+              conflictsFiltered.removeLayer(layer);
+            };
+          });
+          // iterate through the spreadOfPrinting layer
+          spreadOfPrinting.eachLayer(function(layer) {
+            let year = layer.feature.properties.YEAR;
+            if (year <= currentValue) {
+              // if there is a match, add the layer to the spreadOfPrintingFiltered layer group
+              spreadOfPrintingFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the spreadOfPrintingFiltered layer group
+              spreadOfPrintingFiltered.removeLayer(layer);
+            };
+          });
+          // iterate through the universities layer
+          universities.eachLayer(function(layer) {
+            let year = layer.feature.properties.YEAR;
+            if (year <= currentValue) {
+              // if there is a match, add the layer to the universitiesFiltered layer group
+              universitiesFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the universitiesFiltered layer group
+              universitiesFiltered.removeLayer(layer);
+            };
+          });
+          // iterate through the typography layer
+          typography.eachLayer(function(layer) {
+            let props = layer.feature.properties;
+            let startYear = props.START;
+            let endYear = props.END;
+            if (startYear >= currentValue - 10 && endYear <= currentValue && props.CLASS == 'G') {
+              // if there is a match, add the layer to the gothicFiltered layer group
+              gothicFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the gothicFiltered layer group
+              gothicFiltered.removeLayer(layer);
+            };
+            if (startYear >= currentValue - 10 && endYear <= currentValue && props.CLASS == 'R') {
+              // if there is a match, add the layer to the romanFiltered layer group
+              romanFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the romanFiltered layer group
+              romanFiltered.removeLayer(layer);
+            };
+            if (startYear >= currentValue - 10 && endYear <= currentValue && props.CLASS == 'Gr') {
+              // if there is a match, add the layer to the greekFiltered layer group
+              greekFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the greekFiltered layer group
+              greekFiltered.removeLayer(layer);
+            };
+            if (startYear >= currentValue - 10 && endYear <= currentValue && props.CLASS == 'H') {
+              // if there is a match, add the layer to the hebrewFiltered layer group
+              hebrewFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the hebrewFiltered layer group
+              hebrewFiltered.removeLayer(layer);
+            };
+            if (startYear >= currentValue - 10 && endYear <= currentValue && props.CLASS == ' ') {
+              // if there is a match, add the layer to the cyrillicFiltered layer group
+              cyrillicFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the cyrillicFiltered layer group
+              cyrillicFiltered.removeLayer(layer);
+            };
+            if (startYear >= currentValue - 10 && endYear <= currentValue && props.CLASS == 'Gl') {
+              // if there is a match, add the layer to the glagolithicFiltered layer group
+              glagolithicFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the glagolithicFiltered layer group
+              glagolithicFiltered.removeLayer(layer);
+            };
+          });        
+          // iterate through the poliBorders layer
+          poliBorders.eachLayer(function(layer) {
+            let startYear = layer.feature.properties.START;
+            let endYear = layer.feature.properties.END;
+            if (endYear == Math.floor(currentValue/10)*10+10) {
+              // if there is a match, add the layer to the poliBordersFiltered layer group
+              poliBordersFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the poliBordersFiltered layer group
+              poliBordersFiltered.removeLayer(layer);
+            }
+          });
+          // iterate through the output layer
+          output.eachLayer(function(layer) {
+            // define the layer properties
+            let props = layer.feature.properties;
+            // define the array of values in the selected time range
+            let selectedRange = range(currentValue - 10, currentValue, 1);
+            // define an empty array to hold the annual output totals
+            let annualVals = [];
+            // loop through all years in the selected range
+            for (let i = 0; i < selectedRange.length; i++) {
+              // define each year
+              let year = selectedRange[i];
+              // push the annual output totals for each year in the range to the annualVals array
+              annualVals.push(props[year]);
+            }
+            // sum all of the outputs in the range for each place
+            const sum = annualVals.reduce((accumulator, value) => {
+              return accumulator + value;
+            }, 0);
+            // set the layer radius according to the sum of all output in the range
+            layer.setRadius((Math.sqrt(sum / Math.PI)) * 2);
+            // if the sum is greater than zero...
+            if (sum > 0) {
+              // add the layer to the outputFiltered layer group
+              outputFiltered.addLayer(layer);
+            } else {
+              // otherwise, remove the layer from the outputFiltered layer group
+              outputFiltered.removeLayer(layer);
+            }
+            // FOR THE POPUP...
+            // identify the coordinates
+            const latlngStr = JSON.stringify([layer.getLatLng().lat, layer.getLatLng().lng]);
+            // bind a popup to the layer
+            layer.bindPopup('<h4>Output by Location</h4>' +
+              '<h5>Place: ' + layer.feature.properties.PLACE +
+              '<br>Timespan: ' + (currentValue - 10).toString() + '-' + currentValue +
+              '<br>Output: ' + sum +
+              '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+                minWidth: 250,
+                'className': 'custom'
+              });
+          });
     };
 
     // Define a function for zooming to point locations
