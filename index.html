@@ -145,6 +145,19 @@
       margin: 0px;
     }
 
+    #zoom-button {
+      display: inline;
+      padding: 0;
+      border: 0;
+      font: inherit;
+      text-decoration: underline;
+      cursor: pointer;
+      background: transparent;
+      color: #0078A8;
+      width: fit-content;
+      -webkit-appearance: none;
+    }    
+
     .lcontrol {
       max-width: 125px;
       font-size: 10px;
@@ -300,7 +313,7 @@
             '<br><br><u>First Work</u>' +
             '<br>Author: ' + layer.feature.properties.AUTHOR +
             '<br>' + layer.feature.properties.ISTC + ' - <a href="' + 'https://data.cerl.org/istc/' + layer.feature.properties.ISTC + '"' + 'target="_blank" rel="noopener noreferrer">View the ISTC Record' + '</a>' +
-            '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+            '<br>' + "<button id=zoom-button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
               'className': 'custom'
             });
 
@@ -344,7 +357,7 @@
             '<br>Conflict: ' + layer.feature.properties.CONFLICT +
             '<br>Years: ' + layer.feature.properties.STRYEAR + ' - ' + layer.feature.properties.ENDYEAR +
             '<br>Source: ' + layer.feature.properties.SOURCE +
-            '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+            '<br>' + "<button id=zoom-button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
               'className': 'custom'
             });
 
@@ -386,7 +399,7 @@
           layer.bindPopup('<h4>Fair Information</h4>' +
             '<h5>Place: ' + layer.feature.properties.PLACE +
             '<br>Text: ' + layer.feature.properties.TEXT +
-            '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+            '<br>' + "<button id=zoom-button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
               'className': 'custom'
             });
 
@@ -429,7 +442,7 @@
             '<h5>Place: ' + layer.feature.properties.PLACE +
             '<br>Year Established: ' + layer.feature.properties.YEAR +
             '<br>Text: ' + layer.feature.properties.TEXT +
-            '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+            '<br>' + "<button id=zoom-button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
               'className': 'custom'
             });
 
@@ -470,7 +483,7 @@
           // bind a popup to the layer
           layer.bindPopup('<h4>Mill City Information</h4>' +
             '<h5>' + layer.feature.properties.CITY_NAME +
-            '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+            '<br>' + "<button id=zoom-button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
               'className': 'custom'
             });
 
@@ -559,7 +572,7 @@
             '<br>Printer: ' + props.PRINTER +
             '<br>Place: ' + props.PLACE +
             '<br><img src="' + props.GFTLNK + '" class=popupImage >' +
-            '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+            '<br>' + "<button id=zoom-button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
               minWidth: 250,
               'className': 'custom'
             });
@@ -724,7 +737,7 @@
           // bind a popup to the layer
           layer.bindPopup('<h4>Bishopric Information</h4>' +
             '<h5>Location: ' + props.PLACE +
-            '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+            '<br>' + "<button id=zoom-button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
               minWidth: 250,
               'className': 'custom'
           });
@@ -1233,7 +1246,7 @@
               '<h5>Place: ' + layer.feature.properties.PLACE +
               '<br>Timespan: ' + ui.values[0] + '-' + ui.values[1] +
               '<br>Output: ' + sum +
-              '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+              '<br>' + "<button id=zoom-button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
                 minWidth: 250,
                 'className': 'custom'
               });
@@ -1376,7 +1389,7 @@
           '<h5>Place: ' + layer.feature.properties.PLACE +
           '<br>Timespan: ' + firstYear + '-' + secondYear +
           '<br>Output: ' + sum +
-          '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+          '<br>' + "<button id=zoom-button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
             minWidth: 250,
             'className': 'custom'
           });
@@ -1517,7 +1530,7 @@
               '<h5>Place: ' + layer.feature.properties.PLACE +
               '<br>Timespan: ' + (currentValue - 10).toString() + '-' + currentValue +
               '<br>Output: ' + sum +
-              '<br>' + "<button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
+              '<br>' + "<button id=zoom-button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
                 minWidth: 250,
                 'className': 'custom'
               });
