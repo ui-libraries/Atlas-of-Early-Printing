@@ -262,7 +262,7 @@
 
     // Define an empty layer group for the filtered data
     const conflictsFiltered = L.layerGroup();
-    const spreadOfPrintingFiltered = L.layerGroup();
+    const spreadOfPrintingFiltered = L.layerGroup().addTo(map);
     const universitiesFiltered = L.layerGroup();
     const gothicFiltered = L.layerGroup();
     const romanFiltered = L.layerGroup();
@@ -1081,18 +1081,18 @@
         // define the animation function
         const animateSlider = function () {
           // set the slider value to the current value
-          $("#slider-range").slider("values", [currentValue - 10, currentValue]);
+          $("#slider-range").slider("values", [currentValue - 5, currentValue]);
 
           // update the text input with the current slider values
-          $("#amount").val(currentValue - 10 + " - " + currentValue);
+          $("#amount").val(currentValue - 5 + " - " + currentValue);
 
           // define the array of values in every chosen ui slider range
-          const sliderRange = range(currentValue - 10, currentValue, 1);
+          const sliderRange = range(currentValue - 5, currentValue, 1);
 
           slideData(currentValue, conflicts, spreadOfPrinting, universities, typography, poliBorders, output);
 
           // increment the current value by 10
-          currentValue += 10;
+          currentValue += 5;
 
           // if the current value is greater than the end value, stop the animation
           if (currentValue > end) {
@@ -1108,7 +1108,7 @@
         range: true,
         min: 1450,
         max: 1500,
-        values: [1450, 1460],
+        values: [1450, 1500],
         step: 1,
         animate: "slow",        
         slide: function(event, ui) {
