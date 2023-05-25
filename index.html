@@ -1403,7 +1403,7 @@
           conflicts.eachLayer(function(layer) {
             let startYear = layer.feature.properties.STRYEAR;
             let endYear = layer.feature.properties.ENDYEAR;
-            if (startYear >= currentValue - 10 && endYear <= currentValue) {
+            if (startYear >= currentValue - 5 && endYear <= currentValue) {
               // if there is a match, add the layer to the conflictsFiltered layer group
               conflictsFiltered.addLayer(layer);
             } else {
@@ -1438,42 +1438,42 @@
             let props = layer.feature.properties;
             let startYear = props.START;
             let endYear = props.END;
-            if (startYear >= currentValue - 10 && endYear <= currentValue && props.CLASS == 'G') {
+            if (startYear >= currentValue - 5 && endYear <= currentValue && props.CLASS == 'G') {
               // if there is a match, add the layer to the gothicFiltered layer group
               gothicFiltered.addLayer(layer);
             } else {
               // otherwise, remove the layer from the gothicFiltered layer group
               gothicFiltered.removeLayer(layer);
             };
-            if (startYear >= currentValue - 10 && endYear <= currentValue && props.CLASS == 'R') {
+            if (startYear >= currentValue - 5 && endYear <= currentValue && props.CLASS == 'R') {
               // if there is a match, add the layer to the romanFiltered layer group
               romanFiltered.addLayer(layer);
             } else {
               // otherwise, remove the layer from the romanFiltered layer group
               romanFiltered.removeLayer(layer);
             };
-            if (startYear >= currentValue - 10 && endYear <= currentValue && props.CLASS == 'Gr') {
+            if (startYear >= currentValue - 5 && endYear <= currentValue && props.CLASS == 'Gr') {
               // if there is a match, add the layer to the greekFiltered layer group
               greekFiltered.addLayer(layer);
             } else {
               // otherwise, remove the layer from the greekFiltered layer group
               greekFiltered.removeLayer(layer);
             };
-            if (startYear >= currentValue - 10 && endYear <= currentValue && props.CLASS == 'H') {
+            if (startYear >= currentValue - 5 && endYear <= currentValue && props.CLASS == 'H') {
               // if there is a match, add the layer to the hebrewFiltered layer group
               hebrewFiltered.addLayer(layer);
             } else {
               // otherwise, remove the layer from the hebrewFiltered layer group
               hebrewFiltered.removeLayer(layer);
             };
-            if (startYear >= currentValue - 10 && endYear <= currentValue && props.CLASS == ' ') {
+            if (startYear >= currentValue - 5 && endYear <= currentValue && props.CLASS == ' ') {
               // if there is a match, add the layer to the cyrillicFiltered layer group
               cyrillicFiltered.addLayer(layer);
             } else {
               // otherwise, remove the layer from the cyrillicFiltered layer group
               cyrillicFiltered.removeLayer(layer);
             };
-            if (startYear >= currentValue - 10 && endYear <= currentValue && props.CLASS == 'Gl') {
+            if (startYear >= currentValue - 5 && endYear <= currentValue && props.CLASS == 'Gl') {
               // if there is a match, add the layer to the glagolithicFiltered layer group
               glagolithicFiltered.addLayer(layer);
             } else {
@@ -1498,7 +1498,7 @@
             // define the layer properties
             let props = layer.feature.properties;
             // define the array of values in the selected time range
-            let selectedRange = range(currentValue - 10, currentValue, 1);
+            let selectedRange = range(currentValue - 5, currentValue, 1);
             // define an empty array to hold the annual output totals
             let annualVals = [];
             // loop through all years in the selected range
@@ -1528,7 +1528,7 @@
             // bind a popup to the layer
             layer.bindPopup('<h4>Output by Location</h4>' +
               '<h5>Place: ' + layer.feature.properties.PLACE +
-              '<br>Timespan: ' + (currentValue - 10).toString() + '-' + currentValue +
+              '<br>Timespan: ' + (currentValue - 5).toString() + '-' + currentValue +
               '<br>Output: ' + sum +
               '<br>' + "<button id=zoom-button onclick= 'getLoc(\"" + latlngStr + "\")'>Zoom to</button>" + '</h5>', {
                 minWidth: 250,
